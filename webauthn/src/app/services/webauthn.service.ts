@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
 
+// As per 
+// https://stackblitz.com/edit/yubikey-client-example?file=src%2Fapp%2Fapp.component.ts
+const cose_alg_ECDSA_w_SHA256 = -7;
+const cose_alg_ECDSA_w_SHA512 = -36;
+
 // Guide as per:
 // https://dev.to/this-is-angular/integrate-fingerprint-and-face-id-authentication-in-your-angular-app-using-webauthn-a-step-by-step-guide-3o2b
 @Injectable({
@@ -34,14 +39,19 @@ export class WebAuthnService {
       },
       pubKeyCredParams: [{ // Array of acceptable public key algorithms
         type: "public-key",
-        alg: -7  // Represents the ES256 algorithm (Elliptic Curve Digital Signature Algorithm)
+        alg: cose_alg_ECDSA_w_SHA256,
+        // alg: -7  // Represents the ES256 algorithm (Elliptic Curve Digital Signature Algorithm)
       }],
       authenticatorSelection: { // Criteria for selecting the appropriate authenticator
-        authenticatorAttachment: "platform", // Ensures we use the device's built-in biometric authenticator like Touch ID or Face ID
-        userVerification: "required" // Requires user verification (e.g., fingerprint or face scan)
+        // authenticatorAttachment: "platform", // Ensures we use the device's built-in biometric authenticator like Touch ID or Face ID
+        // userVerification: "required" // Requires user verification (e.g., fingerprint or face scan)
+        authenticatorAttachment: "cross-platform",
+        requireResidentKey: true,
+        userVerification: "discouraged"
       },
       timeout: 60000, // Timeout for the registration operation in milliseconds
-      attestation: "direct" // Attestation provides proof of the authenticator's properties and is sent back to the server
+      // attestation: "direct" // Attestation provides proof of the authenticator's properties and is sent back to the server
+      attestation: "none"
     };
 
     try {
@@ -85,6 +95,15 @@ export class WebAuthnService {
     }
   }
 
+  // Clear registration, wipe local storage
+  async reset() {
+    this.clearStoredCredential();
+  }
+
+  async readStoredCredential(): Promise<any> {
+    return this.getStoredCredential;
+  }
+
   // Stores credential data in localStorage (for demo purposes only; this should be handled securely in production)
   private storeCredential(credential: PublicKeyCredential, challenge: Uint8Array) {
     const credentialData = {
@@ -98,5 +117,15 @@ export class WebAuthnService {
   private getStoredCredential(): any {
     const storedCredential = localStorage.getItem('webauthn_credential');
     return storedCredential ? JSON.parse(storedCredential) : null; // Parse the stored JSON back into an object
+  }
+
+  private clearStoredCredential() {
+    try {
+      localStorage.removeItem('webauthn_credential');
+      console.log("Credential cleared from local storage.")
+    } catch (err) {
+      console.error("Clear failed:", err);
+      throw err;
+    }
   }
 }

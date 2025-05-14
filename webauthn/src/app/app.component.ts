@@ -8,9 +8,10 @@ import { CommonModule } from '@angular/common';
   imports: [RouterOutlet, CommonModule],
   template: `
     <div class="auth-container">
-      <h1>Web Biometrics in Angular</h1>
-      <button (click)="register()">Register with Fingerprint</button>
-      <button (click)="login()">Login with Face ID</button>
+      <h1>webauthn ❤️ angular</h1>
+      <button (click)="register()">Register</button>
+      <button (click)="login()">Login</button>
+      <button (click)="clear()">Clear</button>
       <p *ngIf="message" [ngClass]="{'success': isSuccess, 'error': !isSuccess}">{{ message }}</p>
     </div>
   `,
@@ -62,6 +63,17 @@ export class AppComponent {
       this.isSuccess = true;
     } catch (err) {
       this.message = "Authentication failed. Please try again."; // Error message if something goes wrong
+      this.isSuccess = false;
+    }
+  }
+
+  async clear() {
+    try {
+      await this.webAuthnService.reset();
+      this.message = "Registration cleared.";
+      this.isSuccess = true;
+    } catch (err) {
+      this.message = "Failed to clear registration.."; // Error message if something goes wrong
       this.isSuccess = false;
     }
   }
